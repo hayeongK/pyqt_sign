@@ -1,5 +1,6 @@
 import cv2
 import threading
+import random
 
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
@@ -7,6 +8,7 @@ from PyQt5.QtCore import *
 from PyQt5 import QtGui
 
 from instance import Instance
+from UI.result import Result
 
 
 form_quiz = uic.loadUiType("./UI/quiz.ui")[0]
@@ -38,6 +40,9 @@ class QuizWindow(QDialog, QWidget, form_quiz):
         self.lb_page_all.setText(str(self.page))
         self.lb_page.setText("")
 
+        self.select_words()
+        self.nth_quiz = -1
+
     def initUi(self):
         self.setupUi(self)
 
@@ -62,8 +67,16 @@ class QuizWindow(QDialog, QWidget, form_quiz):
             self.btn_pass.setText("다음 단어로")
             self.lb_page.setText(str(self.page_cur))
             self.timerVar.start()
+            self.nth_quiz += 1
+            self.lb_question.setText(self.selected_words[self.nth_quiz])
         else:
             self.next_word()
+
+    def select_words(self):
+        self.selected_words = random.sample(
+            list(Result.quiz_words.keys())[1:], 3)
+        Result.words = self.selected_words
+        Result.check = [False for i in range(len(self.selected_words))]
 
     def progressBarTimer(self):
         self.time = self.progressBar.value()
@@ -81,6 +94,9 @@ class QuizWindow(QDialog, QWidget, form_quiz):
         self.progressBar.reset()
         self.lb_page.setText("")
         self.btn_pass.setText("시작")
+        self.nth_quiz = -1
+        self.select_words()
+        self.lb_question.setText("단어")
 
     def next_word(self):
         if self.page_cur == self.page:  # 단어 퀴즈 끝나면
@@ -91,8 +107,9 @@ class QuizWindow(QDialog, QWidget, form_quiz):
             self.progressBar.setValue(self.time)
             self.page_cur += 1
             self.lb_page.setText(str(self.page_cur))
-            self.lb_question.setText("단어" + str(self.page_cur))
             self.lb_ncount.setText("10")
+            self.nth_quiz += 1
+            self.lb_question.setText(self.selected_words[self.nth_quiz])
 
     def printValue(self):
         # print(self.progressBar.value())
